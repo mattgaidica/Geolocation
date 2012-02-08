@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>GEO</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top:20px;
+      }
+    </style>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+    <script>
+      var geo_stop_accuracy = 15; //integer in meters
+      var geo_stop_milliseconds = 5000; //integer in milliseconds
+
+      var geo_success_count = 1;
+      var geo_wpid = false;
+      var geo_stopped = false;
+
+      $(function() {
+        start_geolocation();
+        setTimeout(function() {
+          stop_geolocation();
+        }, geo_stop_milliseconds);
+        
+      });
+
+      function start_geolocation() {
+        if(!!navigator.geolocation) {
+          geo_wpid = navigator.geolocation.watchPosition(geo_success, geo_error, {enableHighAccuracy:true, maximumAge:0, timeout:27000});
+        } else {
+          alert('Geo is not supported.');
+        }
+      }
+
+      function stop_geolocation() {
+        if(geo_wpid !== false) {
+          navigator.geolocation.clearWatch(geo_wpid);
+          geo_wpid = false;
+          $('#geo-latitude').text(geo_latitude);
+          $('#geo-longitude').text(geo_longitude);
+          $('#geo-accuracy').text(geo_accuracy);
+          $('#geo-success-count').text(geo_success_count);
+        }
+      }
+
+      function geo_success(position) {
+        if(geo_success_count == 1 || position.coords.accuracy < geo_accuracy) {
+          geo_accuracy = position.coords.accuracy;
+          geo_latitude = position.coords.latitude;
+          geo_longitude = position.coords.longitude;
+        }
+        if(geo_accuracy < geo_stop_accuracy) {
+          stop_geolocation();
+        } else {
+          geo_success_count++;
+          $('#geo-success-count').text(geo_success_count);
+        }
+      }
+
+      function geo_error(error){
+        switch (error.code) {
+          case error.TIMEOUT:
+            alert('Timeout');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            alert('Position unavailable');
+            break;
+          case error.PERMISSION_DENIED:
+            alert('Permission denied');
+            break;
+          case error.UNKNOWN_ERROR:
+            alert('Unknown error');
+            break;
+        }
+      }
+    </script>
+
+  </head>
+
+  <body>
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span12">
+          <div class="well">
+            <div>Count: <span id="geo-success-count"></span></div>
+            <div>Latitude: <span id="geo-latitude">Waiting...</span></div>
+            <div>Longitude: <span id="geo-longitude">Waiting...</span></div>
+            <div>Accuracy: <span id="geo-accuracy">Waiting...</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  </html>
